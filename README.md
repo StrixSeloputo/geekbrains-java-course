@@ -17,3 +17,5 @@
    - пакет ```reflection_api```
 1. Урок Java IO + NIO
    - пакет ```io```
+1. Урок JVM & GC + JDBC
+   - пакет ```jdbc```
