@@ -5,14 +5,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
-public class JDBC {
+public class JDBC implements AutoCloseable {
 
     private static Connection connection;
     private static Statement stmt;
 
+    public JDBC() throws SQLException, ClassNotFoundException {
+        connect();
+    }
+
+    @Override
+    public void close() throws Exception {
+        disconnect();
+    }
+
     //== JDBC methods
 
-    public static void connect() throws ClassNotFoundException, SQLException {
+    public void connect() throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
         connection = DriverManager.getConnection("jdbc:sqlite:reflection.db");
         stmt = connection.createStatement();
@@ -20,26 +29,18 @@ public class JDBC {
 
     }
 
-    public static void disconnect() {
-        try {
-            if (stmt != null) {
-                stmt.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public void disconnect() throws SQLException {
+        if (stmt != null) {
+            stmt.close();
         }
-        try {
-            if (connection != null) {
-                connection.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (connection != null) {
+            connection.close();
         }
     }
 
     // Таблица для хранения сущностей создается вручную, делать генерацию запроса CREATE TABLE не требуется.
     // В таблице должен быть столбец id (primary key, auto increment/bigserial).
-    public static void createTableEx(String tableName, Map<String, DbColumnType> columnMap) throws SQLException {
+    public void createTableEx(String tableName, Map<String, DbColumnType> columnMap) throws SQLException {
         String sqlCreate = "CREATE TABLE IF NOT EXISTS " + tableName;
         sqlCreate += " (\n" +
                 "        id    INTEGER PRIMARY KEY AUTOINCREMENT\n";
@@ -57,7 +58,7 @@ public class JDBC {
         stmt.executeUpdate(sqlCreate);
     }
 
-    public static int insertRowEx(String tableName, Map<String, DbColumnType> columnMap, Map<String, Object> valueMap) throws SQLException {
+    public int insertRowEx(String tableName, Map<String, DbColumnType> columnMap, Map<String, Object> valueMap) throws SQLException {
         StringBuilder sqlInsert = new StringBuilder();
         sqlInsert.append("INSERT INTO ").append(tableName);
         StringJoiner sjCol = new StringJoiner(",", "(", ")");
@@ -83,7 +84,7 @@ public class JDBC {
         return stmt.executeUpdate(sqlInsert.toString());
     }
 
-    public static Map<String, Object> selectRowByIdEx(String tableName, Map<String, DbColumnType> columnMap, Long id) throws SQLException {
+    public Map<String, Object> selectRowByIdEx(String tableName, Map<String, DbColumnType> columnMap, Long id) throws SQLException {
         ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName + " WHERE id=" + id + ";");
         Map<String, Object> valueMap = new HashMap<>();
         while (rs.next()) {
@@ -100,7 +101,7 @@ public class JDBC {
         return valueMap;
     }
 
-    public static void selectAllPrint(String tableName, Map<String, DbColumnType> columnMap) throws SQLException {
+    public void selectAllPrint(String tableName, Map<String, DbColumnType> columnMap) throws SQLException {
         ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName + ";");
         System.out.println("================");
         while (rs.next()) {
@@ -122,7 +123,7 @@ public class JDBC {
         }
     }
 
-    public static void getMetadata() throws SQLException {
+    public void getMetadata() throws SQLException {
         DatabaseMetaData databaseMetaData = connection.getMetaData();
         ResultSet resultSet = databaseMetaData.getTables(null, null, null, new String[]{"TABLE"});
         while (resultSet.next()) {
@@ -141,4 +142,5 @@ public class JDBC {
             }
         }
     }
+
 }

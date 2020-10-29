@@ -19,4 +19,17 @@ public class TestClassWithId {
         this.str = str;
         this.integer = integer;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof TestClassWithId) {
+            TestClassWithId casted = (TestClassWithId) obj;
+            return this.id == casted.id && this.str.equals(casted.str) && this.integer.equals(casted.integer);
+        }
+
+        return false;
+    }
 }

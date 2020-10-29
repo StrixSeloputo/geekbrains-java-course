@@ -11,6 +11,7 @@ public class ReflectionRepository<T> {
     // Создайте обобщенный класс вида ReflectionRepository<T>,
     // где T - тип класса, объекты которого необходимо сохранять в БД
 
+    private JDBC jdbc;
     private String tableName;
     private Map<String, DbColumnType> columnMap;
     private Class<T> tClass;
@@ -18,9 +19,11 @@ public class ReflectionRepository<T> {
     private String sqlInsertPrep;
     private String sqlSelectByIdPrep;
 
+
     // *После сохранения должен вернуться объект с id, присвоенным базой данных
 
-    public ReflectionRepository(Class<T> tClass) throws ClassNotFoundException, SQLException {
+    public ReflectionRepository(JDBC jdbc, Class<T> tClass) throws SQLException {
+        this.jdbc = jdbc;
         this.tClass = tClass;
 
         if (tClass.getAnnotation(DbTable.class) != null) {
@@ -51,8 +54,7 @@ public class ReflectionRepository<T> {
             }
         }
 
-        JDBC.connect();
-        JDBC.createTableEx(tableName, columnMap);
+        jdbc.createTableEx(tableName, columnMap);
     }
 
     // ReflectionRepository должен позволять: добавлять объекты в таблицу и получать объект по id
@@ -63,16 +65,17 @@ public class ReflectionRepository<T> {
             field.setAccessible(true);
             valueMap.put(field.getName(), field.get(obj));
         }
-        System.out.println(JDBC.insertRowEx(tableName, columnMap, valueMap));
+        jdbc.insertRowEx(tableName, columnMap, valueMap);
     }
 
     public T getObject(Long id) throws NoSuchFieldException, IllegalAccessException, SQLException {
         Map<String, Object> valueMap;
-        valueMap = JDBC.selectRowByIdEx(tableName, columnMap, id);
+        valueMap = jdbc.selectRowByIdEx(tableName, columnMap, id);
 
         T obj;
         try {
-            Constructor<T> constructor = tClass.getConstructor();
+            Constructor<T> constructor = tClass.getDeclaredConstructor();
+            constructor.setAccessible(true);
             obj = constructor.newInstance();
         } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
             throw new RuntimeException("Class with @DbTable annotation must have constructor without parameters");
@@ -88,6 +91,6 @@ public class ReflectionRepository<T> {
     }
 
     public void printAll() throws SQLException {
-        JDBC.selectAllPrint(tableName, columnMap);
+        jdbc.selectAllPrint(tableName, columnMap);
     }
 }

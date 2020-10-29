@@ -1,21 +1,25 @@
 package jdbc;
 
-import java.sql.SQLException;
-
 public class ReflectionRepositoryTest {
     public static void main(String[] args) {
-        try {
-            ReflectionRepository<TestClassWithId> repWithId = new ReflectionRepository<>(TestClassWithId.class);
+        try (JDBC jdbc = new JDBC()) {
+
+            // 1st test. Class with id, insert object with id
+            ReflectionRepository<TestClassWithId> repWithId = new ReflectionRepository<>(jdbc, TestClassWithId.class);
             repWithId.printAll();
-            JDBC.getMetadata();
+            jdbc.getMetadata();
 
             TestClassWithId test1 = new TestClassWithId(3L, "test", 16);
             repWithId.addObject(test1);
-            repWithId.printAll();
 
             TestClassWithId test2 = repWithId.getObject(3L);
-            repWithId.printAll();
-        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException | SQLException e) {
+            if (test1.equals(test2)) {
+                System.out.println("== Test #1 OK ==");
+            } else {
+                System.out.println("== Test #1 FAILED ==");
+            }
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
