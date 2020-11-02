@@ -1,9 +1,8 @@
 package jdbc;
 
 import java.sql.*;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
-import java.util.StringJoiner;
 
 public class JDBC implements AutoCloseable {
 
@@ -19,7 +18,7 @@ public class JDBC implements AutoCloseable {
         disconnect();
     }
 
-    //== JDBC methods
+    //==== JDBC methods
 
     public void connect() throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
@@ -40,65 +39,18 @@ public class JDBC implements AutoCloseable {
 
     // Таблица для хранения сущностей создается вручную, делать генерацию запроса CREATE TABLE не требуется.
     // В таблице должен быть столбец id (primary key, auto increment/bigserial).
-    public void createTableEx(String tableName, Map<String, DbColumnType> columnMap) throws SQLException {
-        String sqlCreate = "CREATE TABLE IF NOT EXISTS " + tableName;
-        sqlCreate += " (\n" +
-                "        id    INTEGER PRIMARY KEY AUTOINCREMENT\n";
-        for (Map.Entry<String, DbColumnType> column : columnMap.entrySet()) {
-            if (column.getValue().equals(DbColumnType.LONG)) {
-                continue;
-            } else if (column.getValue().equals(DbColumnType.STRING)) {
-                sqlCreate += "        ," + column.getKey() + " TEXT\n";
-            } else if (column.getValue().equals(DbColumnType.INTEGER)) {
-                sqlCreate += "        ," + column.getKey() + " INTEGER\n";
-            }
-        }
-        sqlCreate += "    );";
-        System.out.println(sqlCreate);
-        stmt.executeUpdate(sqlCreate);
+    public void createTableEx(String sqlCreateStatement) throws SQLException {
+        System.out.println(sqlCreateStatement);
+        stmt.executeUpdate(sqlCreateStatement);
     }
 
-    public int insertRowEx(String tableName, Map<String, DbColumnType> columnMap, Map<String, Object> valueMap) throws SQLException {
-        StringBuilder sqlInsert = new StringBuilder();
-        sqlInsert.append("INSERT INTO ").append(tableName);
-        StringJoiner sjCol = new StringJoiner(",", "(", ")");
-        StringJoiner sjVal = new StringJoiner(",", "(", ")");
-        for (Map.Entry<String, Object> value : valueMap.entrySet()) {
-            DbColumnType columnType = columnMap.get(value.getKey());
-            if (columnType != null) {
-                if (columnType.equals(DbColumnType.INTEGER)) {
-                    sjCol.add(value.getKey());
-                    sjVal.add(value.getValue().toString());
-                } else if (columnType.equals(DbColumnType.STRING)) {
-                    sjCol.add(value.getKey());
-                    sjVal.add("'" + value.getValue().toString() + "'");
-                } else if (columnType.equals(DbColumnType.LONG)) {
-                    sjCol.add("id");
-                    sjVal.add(value.getValue().toString());
-                }
-            }
-        }
-        sqlInsert.append(sjCol.toString()).append(" VALUES ").append(sjVal.toString()).append(";");
-//        sqlInsert += sjCol.toString() + " VALUES " + sjVal.toString() + ";";
-        System.out.println(sqlInsert);
-        return stmt.executeUpdate(sqlInsert.toString());
+    public void insertRowEx(PreparedStatement preparedInsertStatement) throws SQLException {
+        int[] result = preparedInsertStatement.executeBatch();
+        System.out.println(Arrays.toString(result));
     }
 
-    public Map<String, Object> selectRowByIdEx(String tableName, Map<String, DbColumnType> columnMap, Long id) throws SQLException {
-        ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName + " WHERE id=" + id + ";");
-        Map<String, Object> valueMap = new HashMap<>();
-        while (rs.next()) {
-            for (Map.Entry<String, DbColumnType> column : columnMap.entrySet()) {
-                if (column.getValue().equals(DbColumnType.LONG)) {
-                    valueMap.put(column.getKey(), rs.getLong("id"));
-                } else if (column.getValue().equals(DbColumnType.STRING)) {
-                    valueMap.put(column.getKey(), rs.getString(column.getKey()));
-                } else if (column.getValue().equals(DbColumnType.INTEGER)) {
-                    valueMap.put(column.getKey(), rs.getInt(column.getKey()));
-                }
-            }
-        }
-        return valueMap;
+    public ResultSet selectRowEx(PreparedStatement preparedStatement) throws SQLException {
+        return preparedStatement.executeQuery();
     }
 
     public void selectAllPrint(String tableName, Map<String, DbColumnType> columnMap) throws SQLException {
@@ -141,6 +93,10 @@ public class JDBC implements AutoCloseable {
                 System.out.println("  " + columnName + " : " + columnSize + " : " + datatype + " : " + isNullable + " : " + isAutoIncrement);
             }
         }
+    }
+
+    public PreparedStatement prepareStatement(String sqlStatement) throws SQLException {
+        return connection.prepareStatement(sqlStatement);
     }
 
 }
