@@ -96,6 +96,7 @@ public class JDBC implements AutoCloseable {
     }
 
     public PreparedStatement prepareStatement(String sqlStatement) throws SQLException {
+        System.out.println(sqlStatement);
         return connection.prepareStatement(sqlStatement);
     }
 

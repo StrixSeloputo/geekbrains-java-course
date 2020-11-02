@@ -72,7 +72,7 @@ public class ReflectionRepository<T> {
     // ReflectionRepository должен позволять: добавлять объекты в таблицу и получать объект по id
     public void addObject(T obj) throws NoSuchFieldException, IllegalAccessException, SQLException {
         PreparedStatement preparedInsertStatement = jdbc.prepareStatement(sqlInsertPrep);
-        int i = 0;
+        int i = 1;
         for (Map.Entry<String, DbColumnType> column : columnMap.entrySet()) {
             Field field = obj.getClass().getDeclaredField(column.getKey());
             field.setAccessible(true);
@@ -157,7 +157,7 @@ public class ReflectionRepository<T> {
             }
             prepStmt.append(sjColumnDescription.toString()).append(";");
         } else if (stmtType.equals(StatementType.SELECT)) {
-            prepStmt.append("SELECT * FROM ").append(tableName).append(" WHERE id = ?");
+            prepStmt.append("SELECT * FROM ").append(tableName).append(" WHERE id = ?;");
         }
         return prepStmt.toString();
     }
