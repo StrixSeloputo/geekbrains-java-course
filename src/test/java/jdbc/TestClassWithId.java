@@ -20,6 +20,11 @@ public class TestClassWithId {
         this.integer = integer;
     }
 
+    TestClassWithId(String str, Integer integer) {
+        this.str = str;
+        this.integer = integer;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
