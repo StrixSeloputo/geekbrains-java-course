@@ -5,8 +5,8 @@ import java.util.Random;
 public class Race {
     // Создайте два массива: с участниками и препятствиями, и заставьте всех участников пройти этот набор препятствий.
     // Если участник не смог пройти одно из препятствий, то дальше по списку препятствий он не идет.
-    private Participant[] participants;
-    private Obstacle[] obstacles;
+    private final Participant[] participants;
+    private final Obstacle[] obstacles;
 
     public Race(int participantsCount, int obstaclesCount) {
         this.participants = new Participant[participantsCount];

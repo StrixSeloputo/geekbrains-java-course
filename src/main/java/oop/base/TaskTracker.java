@@ -2,7 +2,7 @@ package oop.base;
 
 public class TaskTracker {
     // Создайте класс TaskTracker, который хранит в себе массив из 10 задач.
-    private Task[] tasks = new Task[10];
+    private final Task[] tasks = new Task[10];
     private int count;
 
     // Этот класс должен позволять добавлять задачу в массив.
@@ -10,7 +10,6 @@ public class TaskTracker {
     // необходимо вывести сообщение: “Список задач заполнен”.
     public boolean addTask(String name, String reporter, String assignee, String description, String status) {
         if (count == tasks.length) {
-//            System.out.println("Список задач заполнен");
             System.out.println("Task list is full");
             return false;
         }
